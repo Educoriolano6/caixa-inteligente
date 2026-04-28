@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caixa Inteligente - Distribuição Variada de Notas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 25px;
+            max-width: 650px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #1e3c72;
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+
+        .subtitulo {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .valor-input {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #2a5298;
+        }
+
+        button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1e3c72;
+        }
+
+        .prioridades {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .prioridades h3 {
+            color: #1e3c72;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .slider-group {
+            margin-bottom: 12px;
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            padding: 0;
+        }
+
+        .prioridade-valor {
+            color: #2a5298;
+            font-weight: bold;
+        }
+
+        .botoes-rapidos {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-pequeno {
+            background: #6c757d;
+            padding: 8px 12px;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .btn-pequeno:hover {
+            background: #5a6268;
+        }
+
+        .resultado {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .resultado h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .tabela-notas {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .nota-item {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #2a5298;
+        }
+
+        .nota-valor {
+            font-weight: bold;
+            font-size: 16px;
+            color: #2a5298;
+        }
+
+        .nota-valor::before {
+            content: 'R$ ';
+        }
+
+        .nota-qtd {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #ddd;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .erro {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .aviso {
+            background: #e7f3ff;
+            color: #1e3c72;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 11px;
+            color: #999;
+        }
+
+        @media (max-width: 500px) {
+            .tabela-notas {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Caixa Inteligente</h1>
+        <div class="subtitulo">Distribui o valor com TODAS as notas, variando conforme sua preferência</div>
+
+        <div class="valor-input">
+            <label>💵 Valor total para o caixa (R$)</label>
+            <div class="input-group">
+                <input type="number" id="valor" placeholder="Ex: 500" value="500">
+                <button onclick="calcular()">Calcular</button>
+            </div>
+        </div>
+
+        <div class="prioridades">
+            <h3>⚙️ PREFERÊNCIA (quanto maior a barra, MAIS notas desse valor)</h3>
+            
+            <div class="slider-group">
+                <label>R$ 100 <span id="val100" class="prioridade-valor">3</span></label>
+                <input type="range" id="p100" min="0" max="10" step="1" value="3" oninput="atualizarValores()">
+            </div>
+            <div class="slider-group">
+                <label>R$ 50 <span id="val50" class="prioridade-valor">4</span></label>
+                <input type="range" id="p50" min="0" max="10" step="1" value="4" oninput="atualizarValores()">
+            </div>
+            <div class="slider-group">
+                <label>R$ 20 <span id="val20" class="prioridade-valor">5</span></label>
+                <input type="range" id="p20" min="0" max="10" step="1" value="5" oninput="atualizarValores()">
+            </div>
+            <div class="slider-group">
+                <label>R$ 10 <span id="val10" class="prioridade-valor">7</span></label>
+                <input type="range" id="p10" min="0" max="10" step="1" value="7" oninput="atualizarValores()">
+            </div>
+            <div class="slider-group">
+                <label>R$ 5 <span id="val5" class="prioridade-valor">9</span></label>
+                <input type="range" id="p5" min="0" max="10" step="1" value="9" oninput="atualizarValores()">
+            </div>
+            <div class="slider-group">
+                <label>R$ 2 <span id="val2" class="prioridade-valor">10</span></label>
+                <input type="range" id="p2" min="0" max="10" step="1" value="10" oninput="atualizarValores()">
+            </div>
+            
+            <div class="botoes-rapidos">
+                <button class="btn-pequeno" onclick="presetMaisNotasPequenas()">📌 Mais notas pequenas (2,5,10)</button>
+                <button class="btn-pequeno" onclick="presetMaisNotasGrandes()">📌 Mais notas grandes (100,50,20)</button>
+                <button class="btn-pequeno" onclick="presetEquilibrado()">⚖️ Equilibrado</button>
+            </div>
+        </div>
+
+        <div id="resultado"></div>
+        <div class="aviso">
+            💡 O sistema distribui o valor usando TODAS as notas, respeitando sua preferência.
+            <br>Ex: Se você prefere notas de 10, vai aparecer MAIS notas de 10, mas também outras notas.
+        </div>
+        <footer>Cálculo variado - ideal para ter troco disponível no caixa</footer>
+    </div>
+
+    <script>
+        const valores = [100, 50, 20, 10, 5, 2];
+
+        function atualizarValores() {
+            document.getElementById('val100').innerText = document.getElementById('p100').value;
+            document.getElementById('val50').innerText = document.getElementById('p50').value;
+            document.getElementById('val20').innerText = document.getElementById('p20').value;
+            document.getElementById('val10').innerText = document.getElementById('p10').value;
+            document.getElementById('val5').innerText = document.getElementById('p5').value;
+            document.getElementById('val2').innerText = document.getElementById('p2').value;
+        }
+
+        function presetMaisNotasPequenas() {
+            document.getElementById('p100').value = 1;
+            document.getElementById('p50').value = 2;
+            document.getElementById('p20').value = 4;
+            document.getElementById('p10').value = 7;
+            document.getElementById('p5').value = 9;
+            document.getElementById('p2').value = 10;
+            atualizarValores();
+            calcular();
+        }
+
+        function presetMaisNotasGrandes() {
+            document.getElementById('p100').value = 10;
+            document.getElementById('p50').value = 8;
+            document.getElementById('p20').value = 6;
+            document.getElementById('p10').value = 4;
+            document.getElementById('p5').value = 2;
+            document.getElementById('p2').value = 1;
+            atualizarValores();
+            calcular();
+        }
+
+        function presetEquilibrado() {
+            document.getElementById('p100').value = 5;
+            document.getElementById('p50').value = 5;
+            document.getElementById('p20').value = 5;
+            document.getElementById('p10').value = 5;
+            document.getElementById('p5').value = 5;
+            document.getElementById('p2').value = 5;
+            atualizarValores();
+            calcular();
+        }
+
+        function calcular() {
+            let valor = parseInt(document.getElementById('valor').value);
+            
+            if (isNaN(valor) || valor <= 0) {
+                document.getElementById('resultado').innerHTML = `
+                    <div class="erro">⚠️ Digite um valor válido maior que zero!</div>
+                `;
+                return;
+            }
+
+            // Pega preferências (pesos)
+            const pesos = {
+                100: parseInt(document.getElementById('p100').value),
+                50: parseInt(document.getElementById('p50').value),
+                20: parseInt(document.getElementById('p20').value),
+                10: parseInt(document.getElementById('p10').value),
+                5: parseInt(document.getElementById('p5').value),
+                2: parseInt(document.getElementById('p2').value)
+            };
+
+            // Normalizar pesos (soma total para proporção)
+            let somaPesos = 0;
+            for (let v of valores) {
+                somaPesos += pesos[v];
+            }
+
+            // Calcular quantidade ideal (proporcional) de cada nota
+            let quantidadesIdeais = {};
+            let valorTotalIdeal = 0;
+            
+            for (let v of valores) {
+                // Proporção de quanto do valor total deve ser dessa nota
+                let proporcao = pesos[v] / somaPesos;
+                // Valor ideal em reais dessa nota
+                let valorIdeal = valor * proporcao;
+                // Quantidade ideal (arredondada para baixo)
+                let qtdIdeal = Math.floor(valorIdeal / v);
+                quantidadesIdeais[v] = qtdIdeal;
+                valorTotalIdeal += qtdIdeal * v;
+            }
+
+            // Ajustar a diferença (o que faltou ou sobrou)
+            let diferenca = valor - valorTotalIdeal;
+            
+            // Distribuir a diferença priorizando as notas com maior peso
+            if (diferenca > 0) {
+                // Ordena notas pelo peso (maior peso primeiro)
+                let notasOrdenadas = [...valores].sort((a,b) => pesos[b] - pesos[a]);
+                let resto = diferenca;
+                for (let nota of notasOrdenadas) {
+                    while (resto >= nota) {
+                        quantidadesIdeais[nota]++;
+                        resto -= nota;
+                    }
+                }
+            } else if (diferenca < 0) {
+                // Se passou, remove notas começando pelas de menor prioridade
+                let notasOrdenadas = [...valores].sort((a,b) => pesos[a] - pesos[b]);
+                let excesso = -diferenca;
+                for (let nota of notasOrdenadas) {
+                    while (excesso >= nota && quantidadesIdeais[nota] > 0) {
+                        quantidadesIdeais[nota]--;
+                        excesso -= nota;
+                    }
+                }
+            }
+
+            // Verificar se a soma bate
+            let somaFinal = 0;
+            for (let v of valores) {
+                somaFinal += quantidadesIdeais[v] * v;
+            }
+
+            if (somaFinal !== valor) {
+                // Se ainda não bater, ajuste fino
+                let resto = valor - somaFinal;
+                for (let nota of valores) {
+                    if (resto > 0 && resto >= nota) {
+                        quantidadesIdeais[nota]++;
+                        resto -= nota;
+                    } else if (resto < 0 && quantidadesIdeais[nota] > 0 && -resto >= nota) {
+                        quantidadesIdeais[nota]--;
+                        resto += nota;
+                    }
+                }
+            }
+
+            // Montar resultado
+            let temNota = false;
+            let html = `
+                <div class="resultado">
+                    <h3>📋 Para R$ ${valor.toFixed(2)}</h3>
+                    <div class="tabela-notas">
+            `;
+
+            for (let nota of valores) {
+                if (quantidadesIdeais[nota] > 0) {
+                    temNota = true;
+                    html += `
+                        <div class="nota-item">
+                            <span class="nota-valor">${nota}</span>
+                            <span class="nota-qtd">${quantidadesIdeais[nota]} nota(s)</span>
+                        </div>
+                    `;
+                }
+            }
+
+            if (!temNota) {
+                html += `<div style="text-align:center; grid-column:span 2; color:#999;">Nenhuma nota necessária</div>`;
+            }
+
+            const totalNotas = Object.values(quantidadesIdeais).reduce((a,b) => a + b, 0);
+            
+            html += `
+                    </div>
+                    <div class="total">
+                        📦 Total de notas: ${totalNotas} notas
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('resultado').innerHTML = html;
+        }
+
+        // Inicializar
+        window.onload = function() {
+            atualizarValores();
+            calcular();
+        };
+    </script>
+</body>
+</html>
